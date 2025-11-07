@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%8F%8B%3C/text%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gerador de Treino Fitness Acessível</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+      body {
+        font-family: 'Poppins', 'sans-serif';
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      .form-control:focus, .form-select:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+      }
+      .btn-primary {
+        --bs-btn-color: #fff;
+        --bs-btn-bg: #10B981;
+        --bs-btn-border-color: #10B981;
+        --bs-btn-hover-color: #fff;
+        --bs-btn-hover-bg: #059669;
+        --bs-btn-hover-border-color: #047857;
+        --bs-btn-focus-shadow-rgb: 4,120,87;
+        --bs-btn-active-color: #fff;
+        --bs-btn-active-bg: #047857;
+        --bs-btn-active-border-color: #065F46;
+        --bs-btn-disabled-color: #fff;
+        --bs-btn-disabled-bg: #34D399;
+        --bs-btn-disabled-border-color: #34D399;
+      }
+      .text-primary { color: #10B981 !important; }
+      .border-primary { border-color: #10B981 !important; }
+      .bg-primary-subtle { background-color: #D1FAE5 !important; }
+      [data-bs-theme="dark"] .bg-primary-subtle { background-color: rgba(16, 185, 129, 0.2) !important; }
+
+      /* Animation */
+      @keyframes slide-in-up {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      .animate-slide-in-up {
+        animation: slide-in-up 0.5s ease-out forwards;
+        opacity: 0;
+      }
+    </style>
+
+    <!-- Babel to transpile JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Import Map for dependencies -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client"
+      }
+    }
+    </script>
+</head>
+<body class="bg-body-tertiary">
+    <div id="root"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script type="text/babel" data-type="module">
+      import React, { useState, useCallback, useEffect, useMemo } from 'react';
+      import ReactDOM from 'react-dom/client';
+      
+      // --- STATIC DATA AND LOGIC ---
+
+      const EXERCISE_DB = [
+        // Aquecimento
+        { id: 'w1', name: 'Rotação de Ombros', description: 'Sente-se ou fique em pé com a coluna reta. Gire os ombros para frente em movimentos circulares por 30 segundos, depois para trás por mais 30 segundos.', category: 'warmup', tags: ['seated', 'standing'] },
+        { id: 'w2', name: 'Inclinação de Pescoço', description: 'Incline suavemente a cabeça para um lado, segure por 15 segundos. Repita para o outro lado. Em seguida, incline para frente e para trás, suavemente.', category: 'warmup', tags: ['seated', 'standing'] },
+        { id: 'w3', name: 'Círculos com os Braços', description: 'Estenda os braços para os lados. Faça pequenos círculos para frente por 30 segundos, e depois para trás por mais 30 segundos.', category: 'warmup', tags: ['seated', 'standing', 'no-shoulders-heavy'] },
+        
+        // Treino Principal - Superior
+        { id: 'u1', name: 'Rosca Bíceps Sentado (com halteres)', description: 'Sentado com as costas retas, segure um halter em cada mão com as palmas para cima. Flexione os cotovelos, trazendo os pesos em direção aos ombros. Desça controladamente.', category: 'main', tags: ['seated', 'arms'] },
+        { id: 'u2', name: 'Elevação Lateral Sentado', description: 'Sentado, segure halteres leves ao lado do corpo. Levante os braços para os lados até a altura dos ombros, mantendo uma leve flexão nos cotovelos. Desça devagar.', category: 'main', tags: ['seated', 'arms', 'shoulders'] },
+        { id: 'u3', name: 'Remada Curvada (com halteres ou faixa)', description: 'Em pé, incline o tronco para frente mantendo a coluna reta. Puxe os pesos ou a faixa em direção ao abdômen, contraindo as costas.', category: 'main', tags: ['standing', 'back'] },
+        { id: 'u4', name: 'Flexão de Parede', description: 'Fique de frente para uma parede, a um braço de distância. Coloque as mãos na parede e flexione os cotovelos, aproximando o peito da parede. Empurre de volta.', category: 'main', tags: ['standing', 'arms', 'chest', 'no-shoulders-heavy'] },
+        { id: 'u5', name: 'Tríceps Francês Sentado', description: 'Sentado, segure um halter com as duas mãos acima da cabeça. Flexione os cotovelos, descendo o peso atrás da cabeça. Estenda os braços para voltar à posição inicial.', category: 'main', tags: ['seated', 'arms'] },
+
+        // Treino Principal - Core
+        { id: 'c1', name: 'Prancha', description: 'Apoie os antebraços e as pontas dos pés no chão, mantendo o corpo reto como uma prancha. Contrai o abdômen e segure a posição.', category: 'main', tags: ['standing', 'core'] },
+        { id: 'c2', name: 'Elevação de Pernas (sentado na cadeira)', description: 'Sente-se na ponta de uma cadeira firme. Incline-se um pouco para trás e segure nas laterais. Levante os joelhos em direção ao peito.', category: 'main', tags: ['seated', 'core', 'legs'] },
+        { id: 'c3', name: 'Torção Russa Sentado', description: 'Sente-se no chão com os joelhos dobrados. Incline o tronco para trás e gire o tronco de um lado para o outro. Para mais desafio, segure um peso.', category: 'main', tags: ['seated', 'core'] },
+
+        // Treino Principal - Inferior
+        { id: 'l1', name: 'Agachamento na Cadeira', description: 'Fique em pé na frente de uma cadeira. Agache como se fosse sentar, apenas tocando o assento antes de levantar novamente. Mantenha o peito aberto.', category: 'main', tags: ['standing', 'legs'] },
+        { id: 'l2', name: 'Elevação de Panturrilha', description: 'Em pé, apoie-se em uma parede ou cadeira. Levante os calcanhares, ficando na ponta dos pés. Desça lentamente.', category: 'main', tags: ['standing', 'legs'] },
+        { id: 'l3', name: 'Extensão de Perna Sentado', description: 'Sentado em uma cadeira com as costas retas. Estenda uma perna à sua frente até ficar reta. Volte à posição inicial e repita com a outra perna.', category: 'main', tags: ['seated', 'legs'] },
+
+        // Desaquecimento
+        { id: 'cd1', name: 'Alongamento de Tríceps', description: 'Leve um braço por cima da cabeça, dobrando o cotovelo. Use a outra mão para puxar suavemente o cotovelo. Segure por 30 segundos e troque o lado.', category: 'cooldown', tags: ['seated', 'standing'] },
+        { id: 'cd2', name: 'Alongamento de Peito na Porta', description: 'Fique em um portal, coloque os antebraços no batente com os cotovelos na altura dos ombros. Dê um passo à frente para sentir o alongamento no peito. Segure por 30s.', category: 'cooldown', tags: ['standing'] },
+        { id: 'cd3', name: 'Alongamento de Posterior Sentado', description: 'Sente-se no chão com uma perna estendida e a outra dobrada. Incline o tronco para frente em direção ao pé da perna estendida. Segure por 30s e troque.', category: 'cooldown', tags: ['seated'] },
+      ];
+
+      const shuffleArray = (array) => {
+        const newArr = [...array];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+      }
+
+      const generateLocalWorkoutPlan = (formData) => {
+        const { objetivo, acessibilidade } = formData;
+        
+        let filteredExercises = EXERCISE_DB;
+
+        if (acessibilidade === 'Usuário de cadeira de rodas (mobilidade nos braços)') {
+            filteredExercises = EXERCISE_DB.filter(ex => ex.tags.includes('seated') && !ex.tags.includes('legs'));
+        } else if (acessibilidade === 'Mobilidade reduzida (pernas/quadril)') {
+            filteredExercises = EXERCISE_DB.filter(ex => ex.tags.includes('seated'));
+        } else if (acessibilidade === 'Mobilidade reduzida (braços/ombros)') {
+            filteredExercises = EXERCISE_DB.filter(ex => !ex.tags.includes('shoulders'));
+        }
+
+        const getExercises = (category, count) => shuffleArray(filteredExercises.filter(ex => ex.category === category)).slice(0, count);
+
+        const plan = {
+          greeting: `Olá, ${formData.nome}! Preparei um treino focado em ${objetivo.toLowerCase()} e adaptado para você. Vamos começar!`,
+          warmUp: getExercises('warmup', 2).map(ex => ({...ex, instruction: ex.description })),
+          coolDown: getExercises('cooldown', 2).map(ex => ({...ex, instruction: ex.description })),
+          finalNote: "Ótimo trabalho! Lembre-se de se hidratar bem e manter a consistência. O descanso também é fundamental para seus resultados."
+        };
+
+        let reps, sets;
+        if (objetivo === 'Perder Peso') {
+          reps = '15-20 repetições';
+          sets = '3 séries';
+        } else if (objetivo === 'Ganhar Massa Muscular') {
+          reps = '8-12 repetições';
+          sets = '4 séries';
+        } else { // Manter a Saúde
+          reps = '12-15 repetições';
+          sets = '3 séries';
+        }
+        
+        plan.mainWorkout = getExercises('main', 4).map(ex => ({
+          name: ex.name,
+          reps,
+          sets,
+          instruction: ex.description,
+          id: ex.id
+        }));
+
+        return plan;
+      }
+
+      // --- COMPONENTS ---
+
+      const Header = ({ theme, onToggleTheme, onIncreaseFontSize, onDecreaseFontSize }) => {
+        return (
+          <header className="navbar navbar-expand-lg bg-body-secondary sticky-top shadow-sm">
+            <div className="container">
+              <a className="navbar-brand d-flex align-items-center" href="#">
+                <i className="bi bi-heart-pulse-fill text-primary fs-2 me-2"></i>
+                <span className="fs-4 fw-bold">Meu Treino <span className="text-primary">Acessível</span></span>
+              </a>
+              <div className="d-flex align-items-center">
+                <button onClick={onDecreaseFontSize} aria-label="Diminuir tamanho da fonte" className="btn btn-outline-secondary border-0 p-2 me-1">
+                  <i className="bi bi-zoom-out fs-5"></i>
+                </button>
+                <button onClick={onIncreaseFontSize} aria-label="Aumentar tamanho da fonte" className="btn btn-outline-secondary border-0 p-2 me-2">
+                  <i className="bi bi-zoom-in fs-5"></i>
+                </button>
+                <button onClick={onToggleTheme} aria-label="Alternar tema claro/escuro" className="btn btn-outline-secondary border-0 p-2">
+                  <i className={`bi ${theme === 'light' ? 'bi-moon-stars-fill' : 'bi-sun-fill'} fs-5`}></i>
+                </button>
+              </div>
+            </div>
+          </header>
+        );
+      };
+
+      const WorkoutForm = ({ onGenerate, onClear, isLoading }) => {
+        const [formData, setFormData] = useState({
+          nome: '',
+          objetivo: 'Manter a Saúde / Disposição',
+          acessibilidade: 'Nenhuma limitação',
+        });
+
+        const handleChange = (e) => {
+          const { name, value } = e.target;
+          setFormData(prev => ({ ...prev, [name]: value }));
+        };
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          onGenerate(formData);
+        };
+        
+        const handleReset = () => {
+          setFormData({
+            nome: '',
+            objetivo: 'Manter a Saúde / Disposição',
+            acessibilidade: 'Nenhuma limitação',
+          });
+          onClear();
+        };
+
+        return (
+          <div className="card shadow-lg border-light-subtle h-100">
+            <div className="card-body p-4 p-lg-5">
+              <h2 className="card-title fw-bold mb-4">Monte seu Treino</h2>
+              <form onSubmit={handleSubmit} onReset={handleReset}>
+                <div className="mb-3">
+                  <label htmlFor="nome" className="form-label">Nome</label>
+                  <input type="text" id="nome" name="nome" value={formData.nome} onChange={handleChange} required className="form-control" placeholder="Seu nome"/>
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="objetivo" className="form-label">Qual seu objetivo?</label>
+                  <select id="objetivo" name="objetivo" value={formData.objetivo} onChange={handleChange} className="form-select">
+                    <option>Manter a Saúde / Disposição</option>
+                    <option>Perder Peso</option>
+                    <option>Ganhar Massa Muscular</option>
+                  </select>
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="acessibilidade" className="form-label">Nível de Mobilidade</label>
+                  <select id="acessibilidade" name="acessibilidade" value={formData.acessibilidade} onChange={handleChange} className="form-select">
+                    <option>Nenhuma limitação</option>
+                    <option>Usuário de cadeira de rodas (mobilidade nos braços)</option>
+                    <option>Mobilidade reduzida (pernas/quadril)</option>
+                    <option>Mobilidade reduzida (braços/ombros)</option>
+                  </select>
+                </div>
+                <div className="d-grid gap-2">
+                  <button type="submit" disabled={isLoading} className="btn btn-primary btn-lg fw-semibold">
+                    {isLoading ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> : null}
+                    {isLoading ? 'Gerando...' : 'Gerar Meu Treino'}
+                  </button>
+                  <button type="reset" disabled={isLoading} className="btn btn-outline-secondary">Limpar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      };
+      
+      const WorkoutDisplay = ({ plan, isLoading, error, favorites, onToggleFavorite, onClearFavorites }) => {
+        const isFavorite = (exerciseName) => favorites.some(fav => fav.name === exerciseName);
+        
+        const renderContent = () => {
+          if (isLoading) return <div className="text-center"><div className="spinner-border text-primary" role="status"><span className="visually-hidden">Loading...</span></div><p className="mt-3">Gerando seu treino personalizado...</p></div>;
+          if (error) return <div className="alert alert-danger text-center"><h4 className="alert-heading">Ocorreu um Erro!</h4><p>{error}</p></div>;
+          
+          const showFavorites = favorites.length > 0;
+          const showPlan = !!plan;
+
+          if (!showPlan && !showFavorites) {
+            return (
+              <div className="text-center text-muted">
+                <i className="bi bi-clipboard-data-fill" style={{ fontSize: '4rem' }}></i>
+                <h3 className="mt-3">Seu treino aparecerá aqui</h3>
+                <p>Preencha o formulário para começar.</p>
+              </div>
+            );
+          }
+
+          return (
+            <>
+              {showPlan && (
+                <article>
+                  <h2 className="fw-bold mb-4">{plan.greeting}</h2>
+                  <div className="d-flex flex-column gap-4">
+                    <Section title="Aquecimento" icon="bi-fire" exercises={plan.warmUp} indexOffset={0} />
+                    <Section title="Treino Principal" icon="bi-barbell-fill" exercises={plan.mainWorkout} onToggleFavorite={onToggleFavorite} isFavorite={isFavorite} indexOffset={plan.warmUp.length} />
+                    <Section title="Desaquecimento" icon="bi-activity" exercises={plan.coolDown} indexOffset={plan.warmUp.length + plan.mainWorkout.length} />
+                  </div>
+                  <blockquote className="blockquote text-center fst-italic p-3 mt-5 bg-body-secondary rounded border-start border-primary border-5">
+                    <p>{plan.finalNote}</p>
+                  </blockquote>
+                </article>
+              )}
+              {showFavorites && (
+                <div className={showPlan ? 'mt-5 pt-5 border-top' : ''}>
+                    <Section title="Meus Favoritos" icon="bi-star-fill" exercises={favorites} indexOffset={0} />
+                    <div className="mt-4 text-center">
+                        <button onClick={onClearFavorites} className="btn btn-outline-secondary">Limpar Favoritos</button>
+                    </div>
+                </div>
+              )}
+            </>
+          );
+        };
+        
+        return (
+          <div className="card shadow-lg border-light-subtle h-100">
+            <div id="resultadoTreino" aria-live="polite" className="card-body p-4 p-lg-5 d-flex flex-column justify-content-center" style={{minHeight: '500px'}}>
+              {renderContent()}
+            </div>
+          </div>
+        );
+      };
+
+      const Section = ({ title, icon, exercises, onToggleFavorite, isFavorite, indexOffset }) => (
+        <section>
+          <h3 className="fw-semibold mb-3 d-flex align-items-center"><i className={`bi ${icon} text-primary me-2 fs-5`}></i>{title}</h3>
+          <div className="d-flex flex-column gap-3">
+            {exercises.map((ex, index) => (
+              <ExerciseCard key={ex.name + index} exercise={ex} onToggleFavorite={onToggleFavorite} isFavorite={isFavorite ? isFavorite(ex.name) : undefined} index={index + indexOffset} />
+            ))}
+          </div>
+        </section>
+      );
+      
+      const ExerciseCard = ({ exercise, onToggleFavorite, isFavorite, index }) => {
+        const animationStyle = { animationDelay: `${index * 80}ms` };
+        
+        return (
+          <div className="card bg-primary-subtle border-0 animate-slide-in-up" style={animationStyle}>
+            <div className="card-body d-flex align-items-start p-3">
+              <div className="flex-grow-1">
+                <div className="d-flex justify-content-between align-items-start">
+                  <h4 className="fw-semibold fs-6 mb-1 me-3">{exercise.name}</h4>
+                  {exercise.sets && exercise.reps && (
+                    <span className="badge text-bg-primary flex-shrink-0">{exercise.sets} &times; {exercise.reps}</span>
+                  )}
+                </div>
+                <p className="card-text small mb-0">{exercise.instruction}</p>
+              </div>
+              {onToggleFavorite && (
+                <button onClick={() => onToggleFavorite(exercise)} aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'} className="btn border-0 p-1 ms-2">
+                  <i className={`bi ${isFavorite ? 'bi-star-fill text-warning' : 'bi-star'}`}></i>
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // --- Main App Component ---
+
+      function App() {
+        const [workoutPlan, setWorkoutPlan] = useState(null);
+        const [isLoading, setIsLoading] = useState(false);
+        const [error, setError] = useState(null);
+        
+        const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+        const [baseFontSize, setBaseFontSize] = useState(16);
+        const [favorites, setFavorites] = useState(() => {
+          try {
+            const stored = localStorage.getItem('workoutFavorites');
+            return stored ? JSON.parse(stored) : [];
+          } catch {
+            return [];
+          }
+        });
+
+        useEffect(() => {
+          document.documentElement.setAttribute('data-bs-theme', theme);
+          localStorage.setItem('theme', theme);
+        }, [theme]);
+
+        useEffect(() => {
+          localStorage.setItem('workoutFavorites', JSON.stringify(favorites));
+        }, [favorites]);
+        
+        useEffect(() => {
+          document.documentElement.style.fontSize = `${baseFontSize}px`;
+        }, [baseFontSize]);
+
+        const handleGenerateWorkout = useCallback((formData) => {
+          setIsLoading(true);
+          setError(null);
+          setWorkoutPlan(null);
+          setTimeout(() => {
+            try {
+              const plan = generateLocalWorkoutPlan(formData);
+              setWorkoutPlan(plan);
+            } catch (e) {
+              setError(e.message || 'Ocorreu um erro ao gerar seu treino.');
+            } finally {
+              setIsLoading(false);
+            }
+          }, 500); // Simulate processing
+        }, []);
+
+        const handleClear = useCallback(() => {
+          setWorkoutPlan(null);
+          setError(null);
+        }, []);
+
+        const handleToggleFavorite = useCallback((exercise) => {
+          setFavorites(prev => {
+            const isFavorited = prev.some(fav => fav.name === exercise.name);
+            if (isFavorited) {
+              return prev.filter(fav => fav.name !== exercise.name);
+            } else {
+              return [...prev, { name: exercise.name, instruction: exercise.instruction, sets: exercise.sets, reps: exercise.reps }];
+            }
+          });
+        }, []);
+        
+        const handleClearFavorites = useCallback(() => setFavorites([]), []);
+        const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), []);
+        const handleIncreaseFontSize = useCallback(() => setBaseFontSize(s => Math.min(s + 2, 24)), []);
+        const handleDecreaseFontSize = useCallback(() => setBaseFontSize(s => Math.max(s - 2, 12)), []);
+
+        return (
+          <>
+            <Header theme={theme} onToggleTheme={handleToggleTheme} onIncreaseFontSize={handleIncreaseFontSize} onDecreaseFontSize={handleDecreaseFontSize} />
+            <main className="container py-4 py-lg-5">
+              <div className="row g-4 g-lg-5">
+                <div className="col-lg-4">
+                   <WorkoutForm onGenerate={handleGenerateWorkout} onClear={handleClear} isLoading={isLoading} />
+                </div>
+                <div className="col-lg-8">
+                  <WorkoutDisplay plan={workoutPlan} isLoading={isLoading} error={error} favorites={favorites} onToggleFavorite={handleToggleFavorite} onClearFavorites={handleClearFavorites} />
+                </div>
+              </div>
+            </main>
+            <footer className="text-center text-muted py-4 mt-4">
+              <p className="small">Gerador de Treino Fitness Acessível &copy; {new Date().getFullYear()} | UNISANTOS.</p>
+            </footer>
+          </>
+        );
+      }
+      
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<React.StrictMode><App /></React.StrictMode>);
+    </script>
+  </body>
+</html>

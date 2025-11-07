@@ -1,0 +1,5 @@
+{
+  "name": "Copy of Gerador de Treino Fitness Acessível",
+  "description": "Uma aplicação web que gera planos de treino personalizados com base nas necessidades e limitações de acessibilidade do usuário, utilizando a API do Gemini.",
+  "requestFramePermissions": []
+}
