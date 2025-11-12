@@ -135,9 +135,12 @@
 
         const plan = {
           greeting: `Olá, ${formData.nome}! Preparei um treino focado em ${objetivo.toLowerCase()} e adaptado para você. Vamos começar!`,
-          warmUp: getExercises('warmup', 2).map(ex => ({...ex, instruction: ex.description })),
-          coolDown: getExercises('cooldown', 2).map(ex => ({...ex, instruction: ex.description })),
-          finalNote: "Ótimo trabalho! Lembre-se de se hidratar bem e manter a consistência. O descanso também é fundamental para seus resultados."
+          warmUp: getExercises('warmup', 2).map(ex => ({...ex, instruction: ex.description })),
+          
+          **mainWorkout: getExercises('main', 3).map(ex => ({...ex, instruction: ex.description })),**
+
+          coolDown: getExercises('cooldown', 2).map(ex => ({...ex, instruction: ex.description })),
+          finalNote: "Ótimo trabalho! Lembre-se de se hidratar bem e manter a consistência. O descanso também é fundamental para seus resultados."
         };
 
         let reps, sets;
